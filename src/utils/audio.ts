@@ -1,74 +1,53 @@
 import { Howl } from 'howler';
 
-class AudioManager {
-  private bgm: Howl;
-  private sfxMove: Howl;
-  private sfxCapture: Howl;
-  private sfxClick: Howl;
-  private muted: boolean = false;
+let bgMusic: Howl | null = null;
+let sfx: Record<string, Howl> = {};
 
-  constructor() {
-    this.muted = localStorage.getItem('gebeta_muted') === 'true';
+export const initAudio = () => {
+  if (bgMusic) return;
 
-    // Using stable free assets
-    this.bgm = new Howl({
-      src: ['https://assets.mixkit.co/music/preview/mixkit-ethereal-fairy-win-2019.mp3'],
-      loop: true,
-      volume: 0.3,
-      html5: true,
-      mute: this.muted
-    });
+  // Reliable free background music URL
+  bgMusic = new Howl({
+    src: ['https://www.soundhelix.com/examples/mp3/SoundHelix-Song-10.mp3'],
+    loop: true,
+    volume: 0.3,
+    html5: true
+  });
 
-    this.sfxMove = new Howl({
-      src: ['https://assets.mixkit.co/sfx/preview/mixkit-hand-ball-hit-758.mp3'],
-      volume: 0.5,
-      mute: this.muted
-    });
+  sfx.click = new Howl({
+    src: ['https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3'],
+    volume: 0.5
+  });
 
-    this.sfxCapture = new Howl({
-      src: ['https://assets.mixkit.co/sfx/preview/mixkit-magic-marimba-notif-2483.mp3'],
-      volume: 0.7,
-      mute: this.muted
-    });
+  sfx.pop = new Howl({
+    src: ['https://assets.mixkit.co/active_storage/sfx/2578/2578-preview.mp3'],
+    volume: 0.4
+  });
 
-    this.sfxClick = new Howl({
-      src: ['https://assets.mixkit.co/sfx/preview/mixkit-modern-click-box-check-1120.mp3'],
-      volume: 0.4,
-      mute: this.muted
-    });
+  // Start music if not muted
+  if (localStorage.getItem('gebeta_muted') !== 'true') {
+    bgMusic.play();
+  }
+};
+
+export const toggleMute = () => {
+  const isMuted = localStorage.getItem('gebeta_muted') === 'true';
+  const newMuted = !isMuted;
+  localStorage.setItem('gebeta_muted', String(newMuted));
+
+  if (bgMusic) {
+    if (newMuted) bgMusic.pause();
+    else bgMusic.play();
   }
 
-  playBGM() {
-    if (!this.bgm.playing()) {
-      this.bgm.play();
-    }
-  }
+  return newMuted;
+};
 
-  playMove() {
-    this.sfxMove.play();
-  }
+export const isMuted = () => {
+  return localStorage.getItem('gebeta_muted') === 'true';
+};
 
-  playCapture() {
-    this.sfxCapture.play();
-  }
-
-  playClick() {
-    this.sfxClick.play();
-  }
-
-  toggleMute(): boolean {
-    this.muted = !this.muted;
-    localStorage.setItem('gebeta_muted', String(this.muted));
-    this.bgm.mute(this.muted);
-    this.sfxMove.mute(this.muted);
-    this.sfxCapture.mute(this.muted);
-    this.sfxClick.mute(this.muted);
-    return this.muted;
-  }
-
-  isMuted() {
-    return this.muted;
-  }
-}
-
-export const audioManager = new AudioManager();
+export const playSFX = (name: string) => {
+  if (isMuted()) return;
+  if (sfx[name]) sfx[name].play();
+};

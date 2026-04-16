@@ -1,22 +1,25 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Volume2, VolumeX } from 'lucide-react';
-import { audioManager } from '../utils/audio';
 
-export const SoundControl: React.FC = () => {
-  const [isMuted, setIsMuted] = useState(audioManager.isMuted());
+interface SoundControlProps {
+  muted: boolean;
+  onToggle: () => void;
+}
 
-  const toggleMute = () => {
-    const newMuteState = audioManager.toggleMute();
-    setIsMuted(newMuteState);
-  };
-
+const SoundControl: React.FC<SoundControlProps> = ({ muted, onToggle }) => {
   return (
     <button
-      onClick={toggleMute}
-      className="absolute top-4 right-4 z-30 p-3 bg-[#1a120b]/80 border-2 border-[#d4a373] rounded-full text-[#d4a373] hover:scale-110 transition-transform"
-      aria-label="Toggle Sound"
+      onClick={onToggle}
+      className="p-3 bg-slate-800/80 hover:bg-slate-700 rounded-full transition-all border border-slate-600 shadow-xl"
+      aria-label={muted ? "Unmute" : "Mute"}
     >
-      {isMuted ? <VolumeX size={24} /> : <Volume2 size={24} />}
+      {muted ? (
+        <VolumeX className="text-red-400 w-6 h-6" />
+      ) : (
+        <Volume2 className="text-green-400 w-6 h-6" />
+      )}
     </button>
   );
 };
+
+export default SoundControl;

@@ -3,27 +3,24 @@ import Phaser from 'phaser';
 import { MainScene } from '../game/MainScene';
 
 interface GebetaGameProps {
-  onStateChange: (state: any) => void;
+  onUpdate: (stats: any) => void;
+  gameMode: 'PvP' | 'PvC';
 }
 
-const GebetaGame: React.FC<GebetaGameProps> = ({ onStateChange }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+const GebetaGame: React.FC<GebetaGameProps> = ({ onUpdate, gameMode }) => {
+  const gameContainerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
 
   useEffect(() => {
-    if (!containerRef.current) return;
+    if (!gameContainerRef.current) return;
 
     const config: Phaser.Types.Core.GameConfig = {
       type: Phaser.AUTO,
-      parent: containerRef.current,
+      parent: gameContainerRef.current,
       width: 1200,
-      height: 600,
-      backgroundColor: '#3d2b1f',
-      physics: {
-        default: 'arcade',
-        arcade: { debug: false }
-      },
-      scene: [new MainScene(onStateChange)],
+      height: 675,
+      transparent: true,
+      scene: [new MainScene(onUpdate)],
       scale: {
         mode: Phaser.Scale.FIT,
         autoCenter: Phaser.Scale.CENTER_BOTH
@@ -32,12 +29,27 @@ const GebetaGame: React.FC<GebetaGameProps> = ({ onStateChange }) => {
 
     gameRef.current = new Phaser.Game(config);
 
-    return () => {
-      gameRef.current?.destroy(true);
-    };
-  }, []);
+    // Pass data to scene on start
+    gameRef.current.events.once('ready', () => {
+      const scene = gameRef.current?.scene.getAt(0) as MainScene;
+      if (scene) {
+        scene.scene.restart({ gameMode });
+      }
+    });
 
-  return <div ref={containerRef} className="w-full h-full" />;
+    return () => {
+      if (gameRef.current) {
+        gameRef.current.destroy(true);
+      }
+    };
+  }, [gameMode]);
+
+  return (
+    <div 
+      ref={gameContainerRef} 
+      className="w-full h-full cursor-pointer"
+    />
+  );
 };
 
 export default GebetaGame;
